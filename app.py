@@ -4,78 +4,100 @@ import joblib
 import matplotlib.pyplot as plt
 
 # Charger le modèle
-with open("model.pkl", "rb") as f:
+with open("best_model.pkl", "rb") as f:
     model = joblib.load(f)
 
-st.title("📈 Courbe G/Gmax en fonction de γ (%)")
-st.markdown("Entrez vos paramètres de sol pour générer la courbe G/Gmax.")
+# Titre de l'application
+st.title("Application de Classification des Sols")
 
-# =============================================
-# Paramètres d'entrée dans l'ordre strict du modèle
-# =============================================
+# Description
+st.write("""
+Cette application permet de prédire la catégorie d'un sol en fonction de ses caractéristiques.
+Remplis les champs ci-dessous et clique sur le bouton **Prédire** pour obtenir le résultat.
+""")
 
-# Créer des colonnes pour un affichage horizontal
-col1, col2, col3, col4 = st.columns(4)
+# Fonction pour créer les champs de saisie
+def user_input_features():
+    st.sidebar.header('Paramètres du Sol')
 
-with col1:
-     PI = st.number_input("PI", value=20.0, key="PI")
-     W = st.number_input("W", value=20.0, key="W")
-     Wl = st.number_input("Wl", value=20.0, key="Wl")
+    # Initialisation des valeurs par défaut (peut être modifié)
+    default_values = {
+        'Simplified USCS': 'SP',
+        'Gravel content (%)': 0.0,
+        'Sand content (%)': 80.0,
+        'Fine particles content (%)': 20.0,
+        'Plasticity index': 0.0,
+        'Liquid limit (%)': 0.0,
+        'Plastic limit (%)': 0.0,
+        'Cement content (%)': 0.0,
+        'Cement classification': 'CEM I',
+        'Lime content (%)': 0.0,
+        'Curing duration (days)': 7.0,
+        'Curing temperature (°C)': 20.0,
+        'Density (g/cm³)': 2.0,
+        'Water content (%)': 10.0,
+        'Frequency (Hz)': 0.0,
+        'SR (Stress Ratio) (-)': 0.0
+    }
 
-with col2:
-    rho = st.number_input("ρ (t/m3)", value=1.5, key="rho")
-    sigma = st.number_input("σ (kpa)", value=200.0, key="sigma")
-    n_points = st.slider("Nombre de points", min_value=10, max_value=200, value=50)
-    Z = st.number_input("Z (m)", value=20.0, key="Z")
+    # Création des champs de saisie
+    simplified_uscs = st.sidebar.text_input('Simplified USCS', default_values['Simplified USCS'])
+    gravel_content = st.sidebar.number_input('Gravel content (%)', value=default_values['Gravel content (%)'])
+    sand_content = st.sidebar.number_input('Sand content (%)', value=default_values['Sand content (%)'])
+    fine_particles_content = st.sidebar.number_input('Fine particles content (%)', value=default_values['Fine particles content (%)'])
+    plasticity_index = st.sidebar.number_input('Plasticity index', value=default_values['Plasticity index'])
+    liquid_limit = st.sidebar.number_input('Liquid limit (%)', value=default_values['Liquid limit (%)'])
+    plastic_limit = st.sidebar.number_input('Plastic limit (%)', value=default_values['Plastic limit (%)'])
+    cement_content = st.sidebar.number_input('Cement content (%)', value=default_values['Cement content (%)'])
+    cement_classification = st.sidebar.text_input('Cement classification', default_values['Cement classification'])
+    lime_content = st.sidebar.number_input('Lime content (%)', value=default_values['Lime content (%)'])
+    curing_duration = st.sidebar.number_input('Curing duration (days)', value=default_values['Curing duration (days)'])
+    curing_temperature = st.sidebar.number_input('Curing temperature (°C)', value=default_values['Curing temperature (°C)'])
+    density = st.sidebar.number_input('Density (g/cm³)', value=default_values['Density (g/cm³)'])
+    water_content = st.sidebar.number_input('Water content (%)', value=default_values['Water content (%)'])
+    frequency = st.sidebar.number_input('Frequency (Hz)', value=default_values['Frequency (Hz)'])
+    sr = st.sidebar.number_input('SR (Stress Ratio) (-)', value=default_values['SR (Stress Ratio) (-)'])
 
-with col3:
-    e0 = st.number_input("e0", value=0.5, key="e0")
-    gamma_min = st.number_input("γ min (%)", value=0.01, key="gamma_min")
-    gamma_max = st.number_input("γ max (%)", value=1.0, key="gamma_max")
+    # Création d'un dictionnaire avec les valeurs saisies
+    data = {
+        'Simplified USCS': simplified_uscs,
+        'Gravel content (%)': gravel_content,
+        'Sand content (%)': sand_content,
+        'Fine particles content (%)': fine_particles_content,
+        'Plasticity index': plasticity_index,
+        'Liquid limit (%)': liquid_limit,
+        'Plastic limit (%)': plastic_limit,
+        'Cement content (%)': cement_content,
+        'Cement classification': cement_classification,
+        'Lime content (%)': lime_content,
+        'Curing duration (days)': curing_duration,
+        'Curing temperature (°C)': curing_temperature,
+        'Density (g/cm³)': density,
+        'Water content (%)': water_content,
+        'Frequency (Hz)': frequency,
+        'SR (Stress Ratio) (-)': sr
+    }
 
+    features = pd.DataFrame(data, index=[0])
+    return features
 
+# Récupération des données saisies par l'utilisateur
+input_df = user_input_features()
 
-# Ajouter les paramètres restants (ρ et σ) en dessous
+# Affichage des données saisies
+st.subheader('Paramètres saisis')
+st.write(input_df)
 
-# =============================================
-# Logique pour la classe USCS (une seule case cochée)
-# =============================================
-# Désactiver les checkboxes non sélectionnées
-uscs_options = ["CH", "CH-CL", "CL", "CL-CH", "CL-ML", "MH", "MH-OH", "ML", "ML-OL"]
-selected_uscs = st.radio("Sélectionnez la classe USCS :", uscs_options, horizontal=True)
+# Bouton de prédiction
+if st.button('Prédire'):
+    # Préparation des données pour la prédiction (gérer les NaN si nécessaire)
+    input_data = input_df.copy()
+    # Remplace les valeurs vides ou NaN par 0 ou une autre valeur par défaut, selon ton modèle
+    input_data = input_data.fillna(0)
 
-# Mise à jour des variables one-hot en fonction de la sélection
-USCS_CH = 1 if selected_uscs == "CH" else 0
-USCS_CH_CL = 1 if selected_uscs == "CH-CL" else 0
-USCS_CL = 1 if selected_uscs == "CL" else 0
-USCS_CL_CH = 1 if selected_uscs == "CL-CH" else 0
-USCS_CL_ML = 1 if selected_uscs == "CL-ML" else 0
-USCS_MH = 1 if selected_uscs == "MH" else 0
-USCS_MH_OH = 1 if selected_uscs == "MH-OH" else 0
-USCS_ML = 1 if selected_uscs == "ML" else 0
-USCS_ML_OL = 1 if selected_uscs == "ML-OL" else 0
+    # Prédiction
+    prediction = model.predict(input_data)
 
-# =============================================
-# Calcul et tracé
-# =============================================
-if st.button("Générer la courbe"):
-    gammas = np.logspace(-8, 1, n_points)
-    X = []
-    for g in gammas:
-        features = [
-            PI, USCS_CH, USCS_CH_CL, USCS_CL, USCS_CL_CH,
-            USCS_CL_ML, USCS_MH, USCS_MH_OH, USCS_ML, USCS_ML_OL,
-            W, Wl, Z, e0, np.log10(g), rho, sigma
-        ]
-        X.append(features)
-    X = np.array(X)
-    print(X)
-    y_pred = model.predict(X)
-    fig, ax = plt.subplots()
-    ax.plot(np.log10(gammas), y_pred, label="G/Gmax", color="blue")
-    ax.set_xscale('log')
-    ax.set_xlabel("γ (%)")
-    ax.set_ylabel("G/Gmax")
-    ax.grid(True)
-    ax.legend()
-    st.pyplot(fig)
+    # Affichage du résultat
+    st.subheader('Résultat de la prédiction')
+    st.write(f"La catégorie prédite est : **{prediction[0]}**")
