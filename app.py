@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import joblib
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Charger le modèle
 @st.cache_resource
@@ -12,9 +13,12 @@ def load_model():
 
 model = load_model()
 
+# Labels des classes (cycles avant rupture)
+labels = [r"[0, $10^5$]", r"[$10^5$, $10^7$]", r"[$10^7$, +∞]"]
+
 # Configuration de la page
 st.set_page_config(
-    page_title="Classification des Sols",
+    page_title="Classification des Sols - Cycles avant rupture",
     page_icon="🌍",
     layout="wide"
 )
@@ -22,7 +26,7 @@ st.set_page_config(
 # Titre et description
 st.title("🌍 Application de Classification des Sols")
 st.markdown("""
-Cette application prédit la catégorie d'un sol en fonction de ses caractéristiques.
+Cette application prédit la catégorie de cycles avant rupture d'un sol en fonction de ses caractéristiques.
 Remplissez les champs ci-dessous et cliquez sur **Prédire** pour obtenir le résultat et les probabilités associées.
 """)
 
@@ -82,21 +86,25 @@ if st.button("🔮 **Prédire la catégorie du sol**", type="primary", use_conta
     prediction = model.predict(input_data)
     probabilities = model.predict_proba(input_data)
 
-    # Noms des catégories (à adapter selon ton modèle)
-    classes = model.classes_
-
     # Affichage du résultat
     st.markdown("---")
     st.subheader("📊 Résultat de la prédiction")
-    st.success(f"La catégorie prédite est : **{prediction[0]}**", icon="✅")
+    st.success(f"La catégorie prédite est : **{labels[prediction[0]]}**", icon="✅")
 
     # Affichage des probabilités
-    st.subheader("📈 Probabilités d'appartenance à chaque catégorie")
+    st.subheader("📈 Probabilités d'appartenance à chaque catégorie de cycles avant rupture")
     prob_df = pd.DataFrame({
-        "Catégorie": classes,
+        "Catégorie (cycles avant rupture)": labels,
         "Probabilité": probabilities[0]
     })
     st.dataframe(prob_df.style.format({"Probabilité": "{:.2%}"}))
+
+    # Graphique en barres des probabilités
+    fig, ax = plt.subplots()
+    ax.bar(labels, probabilities[0], color=['#4e79a7', '#f28e2b', '#e15759'])
+    ax.set_ylabel("Probabilité")
+    ax.set_title("Probabilités d'appartenance aux catégories")
+    st.pyplot(fig)
 
     # Affichage des paramètres saisis
     st.subheader("Paramètres saisis")
