@@ -20,10 +20,10 @@ st.set_page_config(
 )
 
 # Titre et description
-st.title("Application de Classification des Sols")
+st.title("🌍 Application de Classification des Sols")
 st.markdown("""
 Cette application prédit la catégorie d'un sol en fonction de ses caractéristiques.
-Remplissez les champs ci-dessous et cliquez sur **Prédire** pour obtenir le résultat.
+Remplissez les champs ci-dessous et cliquez sur **Prédire** pour obtenir le résultat et les probabilités associées.
 """)
 
 # Séparateur visuel
@@ -78,13 +78,25 @@ if st.button("🔮 **Prédire la catégorie du sol**", type="primary", use_conta
     input_df = pd.DataFrame(data, index=[0])
     input_data = input_df.fillna(0)
 
-    # Prédiction
+    # Prédiction et probabilités
     prediction = model.predict(input_data)
+    probabilities = model.predict_proba(input_data)
+
+    # Noms des catégories (à adapter selon ton modèle)
+    classes = model.classes_
 
     # Affichage du résultat
     st.markdown("---")
     st.subheader("📊 Résultat de la prédiction")
     st.success(f"La catégorie prédite est : **{prediction[0]}**", icon="✅")
+
+    # Affichage des probabilités
+    st.subheader("📈 Probabilités d'appartenance à chaque catégorie")
+    prob_df = pd.DataFrame({
+        "Catégorie": classes,
+        "Probabilité": probabilities[0]
+    })
+    st.dataframe(prob_df.style.format({"Probabilité": "{:.2%}"}))
 
     # Affichage des paramètres saisis
     st.subheader("Paramètres saisis")
