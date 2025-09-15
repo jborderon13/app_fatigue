@@ -63,18 +63,18 @@ def user_input_features():
     data = {
         'Simplified USCS': simplified_uscs,
         'Gravel content (%)': gravel_content,
-        'Sand content (%)': sand_content,
+        'Sand content (%) ': sand_content,
         'Fine particles content (%)': fine_particles_content,
-        'Plasticity index': plasticity_index,
-        'Liquid limit (%)': liquid_limit,
+        'Plasticity index ': plasticity_index,
+        'Liquid limit (%) ': liquid_limit,
         'Plastic limit (%)': plastic_limit,
         'Cement content (%)': cement_content,
         'Cement classification': cement_classification,
         'Lime content (%)': lime_content,
         'Curing duration (days)': curing_duration,
         'Curing temperature (°C)': curing_temperature,
-        'Density (g/cm³)': density,
-        'Water content (%)': water_content,
+        'Density (g/cm³) ': density,
+        'Water content (%) ': water_content,
         'Frequency (Hz)': frequency,
         'SR (Stress Ratio) (-)': sr
     }
