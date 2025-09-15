@@ -73,8 +73,8 @@ def user_input_features():
         'Lime content (%)': lime_content,
         'Curing duration (days)': curing_duration,
         'Curing temperature (°C)': curing_temperature,
-        'Density (g/cm³) ': density,
-        'Water content (%) ': water_content,
+        'Density (g/cm^3)': density,
+        'Water content (%)': water_content,
         'Frequency (Hz)': frequency,
         'SR (Stress Ratio) (-)': sr
     }
