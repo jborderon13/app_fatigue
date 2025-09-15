@@ -1,104 +1,94 @@
 import streamlit as st
 import numpy as np
 import joblib
-import matplotlib.pyplot as plt
 import pandas as pd
 
 # Charger le modèle
-with open("best_model.pkl", "rb") as f:
-    model = joblib.load(f)
+@st.cache_resource
+def load_model():
+    with open("best_model.pkl", "rb") as f:
+        model = joblib.load(f)
+    return model
 
-# Titre de l'application
-st.title("Application de Classification des Sols")
+model = load_model()
 
-# Description
-st.write("""
-Cette application permet de prédire la catégorie d'un sol en fonction de ses caractéristiques.
-Remplis les champs ci-dessous et clique sur le bouton **Prédire** pour obtenir le résultat.
+# Configuration de la page
+st.set_page_config(
+    page_title="Classification des Sols",
+    page_icon="🌍",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Titre et description
+st.title("🌍 Application de Classification des Sols")
+st.markdown("""
+Cette application prédit la catégorie d'un sol en fonction de ses caractéristiques.
+Remplissez les champs ci-dessous et cliquez sur **Prédire** pour obtenir le résultat.
 """)
 
-# Fonction pour créer les champs de saisie
-def user_input_features():
-    st.sidebar.header('Paramètres du Sol')
+# Organisation des champs en onglets
+tab1, tab2 = st.tabs(["**Paramètres du Sol**", "**Résultat**"])
 
-    # Initialisation des valeurs par défaut (peut être modifié)
-    default_values = {
-        'Simplified USCS': 'SP',
-        'Gravel content (%)': 0.0,
-        'Sand content (%)': 80.0,
-        'Fine particles content (%)': 20.0,
-        'Plasticity index': 0.0,
-        'Liquid limit (%)': 0.0,
-        'Plastic limit (%)': 0.0,
-        'Cement content (%)': 0.0,
-        'Cement classification': 'CEM I',
-        'Lime content (%)': 0.0,
-        'Curing duration (days)': 7.0,
-        'Curing temperature (°C)': 20.0,
-        'Density (g/cm³)': 2.0,
-        'Water content (%)': 10.0,
-        'Frequency (Hz)': 0.0,
-        'SR (Stress Ratio) (-)': 0.0
-    }
+with tab1:
+    st.header("Paramètres d'entrée")
 
-    # Création des champs de saisie
-    simplified_uscs = st.sidebar.text_input('Simplified USCS', default_values['Simplified USCS'])
-    gravel_content = st.sidebar.number_input('Gravel content (%)', value=default_values['Gravel content (%)'])
-    sand_content = st.sidebar.number_input('Sand content (%)', value=default_values['Sand content (%)'])
-    fine_particles_content = st.sidebar.number_input('Fine particles content (%)', value=default_values['Fine particles content (%)'])
-    plasticity_index = st.sidebar.number_input('Plasticity index', value=default_values['Plasticity index'])
-    liquid_limit = st.sidebar.number_input('Liquid limit (%)', value=default_values['Liquid limit (%)'])
-    plastic_limit = st.sidebar.number_input('Plastic limit (%)', value=default_values['Plastic limit (%)'])
-    cement_content = st.sidebar.number_input('Cement content (%)', value=default_values['Cement content (%)'])
-    cement_classification = st.sidebar.text_input('Cement classification', default_values['Cement classification'])
-    lime_content = st.sidebar.number_input('Lime content (%)', value=default_values['Lime content (%)'])
-    curing_duration = st.sidebar.number_input('Curing duration (days)', value=default_values['Curing duration (days)'])
-    curing_temperature = st.sidebar.number_input('Curing temperature (°C)', value=default_values['Curing temperature (°C)'])
-    density = st.sidebar.number_input('Density (g/cm³)', value=default_values['Density (g/cm³)'])
-    water_content = st.sidebar.number_input('Water content (%)', value=default_values['Water content (%)'])
-    frequency = st.sidebar.number_input('Frequency (Hz)', value=default_values['Frequency (Hz)'])
-    sr = st.sidebar.number_input('SR (Stress Ratio) (-)', value=default_values['SR (Stress Ratio) (-)'])
+    # Utilisation de colonnes pour organiser les champs
+    col1, col2 = st.columns(2)
 
-    # Création d'un dictionnaire avec les valeurs saisies
-    data = {
-        'Simplified USCS': simplified_uscs,
-        'Gravel content (%)': gravel_content,
-        'Sand content (%) ': sand_content,
-        'Fine particles content (%)': fine_particles_content,
-        'Plasticity index ': plasticity_index,
-        'Liquid limit (%) ': liquid_limit,
-        'Plastic limit (%)': plastic_limit,
-        'Cement content (%)': cement_content,
-        'Cement classification': cement_classification,
-        'Lime content (%)': lime_content,
-        'Curing duration (days)': curing_duration,
-        'Curing temperature (°C)': curing_temperature,
-        'Density (g/cm^3)': density,
-        'Water content (%)': water_content,
-        'Frequency (Hz)': frequency,
-        'SR (Stress Ratio) (-)': sr
-    }
+    with col1:
+        simplified_uscs = st.text_input('**Simplified USCS**', value="SP")
+        gravel_content = st.number_input('**Gravel content (%)**', value=0.0, min_value=0.0, max_value=100.0)
+        sand_content = st.number_input('**Sand content (%)**', value=80.0, min_value=0.0, max_value=100.0)
+        fine_particles_content = st.number_input('**Fine particles content (%)**', value=20.0, min_value=0.0, max_value=100.0)
+        plasticity_index = st.number_input('**Plasticity index**', value=0.0, min_value=0.0)
+        liquid_limit = st.number_input('**Liquid limit (%)**', value=0.0, min_value=0.0)
+        plastic_limit = st.number_input('**Plastic limit (%)**', value=0.0, min_value=0.0)
 
-    features = pd.DataFrame(data, index=[0])
-    return features
+    with col2:
+        cement_content = st.number_input('**Cement content (%)**', value=0.0, min_value=0.0, max_value=100.0)
+        cement_classification = st.text_input('**Cement classification**', value="CEM I")
+        lime_content = st.number_input('**Lime content (%)**', value=0.0, min_value=0.0, max_value=100.0)
+        curing_duration = st.number_input('**Curing duration (days)**', value=7.0, min_value=0.0)
+        curing_temperature = st.number_input('**Curing temperature (°C)**', value=20.0, min_value=-20.0, max_value=100.0)
+        density = st.number_input('**Density (g/cm³)**', value=2.0, min_value=0.1, max_value=10.0)
+        water_content = st.number_input('**Water content (%)**', value=10.0, min_value=0.0, max_value=100.0)
+        frequency = st.number_input('**Frequency (Hz)**', value=0.0, min_value=0.0)
+        sr = st.number_input('**SR (Stress Ratio) (-)**', value=0.0)
 
-# Récupération des données saisies par l'utilisateur
-input_df = user_input_features()
+    # Bouton de prédiction
+    if st.button("🔮 **Prédire**", type="primary", use_container_width=True):
+        # Préparation des données (avec tes noms de colonnes exacts)
+        data = {
+            'Simplified USCS': simplified_uscs,
+            'Gravel content (%)': gravel_content,
+            'Sand content (%) ': sand_content,  # Espace supplémentaire conservé
+            'Fine particles content (%)': fine_particles_content,
+            'Plasticity index ': plasticity_index,  # Espace supplémentaire conservé
+            'Liquid limit (%) ': liquid_limit,  # Espace supplémentaire conservé
+            'Plastic limit (%)': plastic_limit,
+            'Cement content (%)': cement_content,
+            'Cement classification': cement_classification,
+            'Lime content (%)': lime_content,
+            'Curing duration (days)': curing_duration,
+            'Curing temperature (°C)': curing_temperature,
+            'Density (g/cm^3)': density,  # Nom exact avec "^3"
+            'Water content (%)': water_content,
+            'Frequency (Hz)': frequency,
+            'SR (Stress Ratio) (-)': sr
+        }
 
-# Affichage des données saisies
-st.subheader('Paramètres saisis')
-st.write(input_df)
+        input_df = pd.DataFrame(data, index=[0])
+        input_data = input_df.fillna(0)
 
-# Bouton de prédiction
-if st.button('Prédire'):
-    # Préparation des données pour la prédiction (gérer les NaN si nécessaire)
-    input_data = input_df.copy()
-    # Remplace les valeurs vides ou NaN par 0 ou une autre valeur par défaut, selon ton modèle
-    input_data = input_data.fillna(0)
+        # Prédiction
+        prediction = model.predict(input_data)
 
-    # Prédiction
-    prediction = model.predict(input_data)
+        # Affichage du résultat dans l'onglet "Résultat"
+        with tab2:
+            st.header("Résultat de la prédiction")
+            st.success(f"La catégorie prédite est : **{prediction[0]}**")
 
-    # Affichage du résultat
-    st.subheader('Résultat de la prédiction')
-    st.write(f"La catégorie prédite est : **{prediction[0]}**")
+            # Affichage des paramètres saisis
+            st.subheader("Paramètres saisis")
+            st.dataframe(input_df.style.highlight_max(axis=0))
