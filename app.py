@@ -3,7 +3,7 @@ import numpy as np
 import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
-
+st.image("logo.jpg", width=1050)  # Ajustez la largeur selon vos besoins
 # Charger le modèle
 @st.cache_resource
 def load_model():
