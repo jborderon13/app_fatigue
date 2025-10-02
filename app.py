@@ -106,6 +106,7 @@ if st.button("🔮 **Predict Soil Category**", type="primary", use_container_wid
     fig, ax = plt.subplots()
     ax.bar(labels, probabilities[0], color=['#4e79a7', '#f28e2b', '#e15759'])
     ax.set_ylabel("Probability")
+    ax.set_xlabel("Number of cycles")
     ax.set_title("Category Probabilities")
     st.pyplot(fig)
 
