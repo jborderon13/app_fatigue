@@ -3,8 +3,11 @@ import numpy as np
 import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
-st.image("logo.jpg", width=1050)  # Ajustez la largeur selon vos besoins
-# Charger le modèle
+
+# Logo
+st.image("logo.jpg", width=1050)  # Adjust width as needed
+
+# Load the model
 @st.cache_resource
 def load_model():
     with open("best_model.pkl", "rb") as f:
@@ -13,27 +16,27 @@ def load_model():
 
 model = load_model()
 
-# Labels des classes (cycles avant rupture)
+# Class labels (cycles to failure)
 labels = [r"[0, $10^5$]", r"[$10^5$, $10^7$]", r"[$10^7$, +∞]"]
 
-# Configuration de la page
+# Page configuration
 st.set_page_config(
-    page_title="Classification des Sols - Cycles avant rupture",
+    page_title="Soil Classification - Cycles to Failure",
     page_icon="🌍",
     layout="wide"
 )
 
-# Titre et description
-st.title("🌍 Application de Classification des Sols")
+# Title and description
+st.title("🌍 Soil Classification Application")
 st.markdown("""
-Cette application prédit la catégorie de cycles avant rupture d'un sol en fonction de ses caractéristiques.
-Remplissez les champs ci-dessous et cliquez sur **Prédire** pour obtenir le résultat et les probabilités associées.
+This application predicts the **cycles-to-failure category** of a soil sample based on its properties.  
+Fill in the fields below and click **Predict** to see the result and the associated probabilities.
 """)
 
-# Séparateur visuel
+# Visual separator
 st.markdown("---")
 
-# Organisation des champs en colonnes
+# Organize input fields into columns
 col1, col2 = st.columns(2)
 
 with col1:
@@ -56,24 +59,24 @@ with col2:
     frequency = st.number_input('**Frequency (Hz)**', value=0.0, min_value=0.0)
     sr = st.number_input('**SR (Stress Ratio) (-)**', value=0.0)
 
-# Bouton de prédiction centré
+# Prediction button
 st.markdown("---")
-if st.button("🔮 **Prédire la catégorie du sol**", type="primary", use_container_width=True):
-    # Préparation des données (avec tes noms de colonnes exacts)
+if st.button("🔮 **Predict Soil Category**", type="primary", use_container_width=True):
+    # Prepare input data
     data = {
         'Simplified USCS': simplified_uscs,
         'Gravel content (%)': gravel_content,
-        'Sand content (%) ': sand_content,  # Espace supplémentaire conservé
+        'Sand content (%) ': sand_content,  # Keep exact column name if trained this way
         'Fine particles content (%)': fine_particles_content,
-        'Plasticity index ': plasticity_index,  # Espace supplémentaire conservé
-        'Liquid limit (%) ': liquid_limit,  # Espace supplémentaire conservé
+        'Plasticity index ': plasticity_index,  # Keep exact column name
+        'Liquid limit (%) ': liquid_limit,      # Keep exact column name
         'Plastic limit (%)': plastic_limit,
         'Cement content (%)': cement_content,
         'Cement classification': cement_classification,
         'Lime content (%)': lime_content,
         'Curing duration (days)': curing_duration,
         'Curing temperature (°C)': curing_temperature,
-        'Density (g/cm^3)': density,  # Nom exact avec "^3"
+        'Density (g/cm^3)': density,  # Exact column name
         'Water content (%)': water_content,
         'Frequency (Hz)': frequency,
         'SR (Stress Ratio) (-)': sr
@@ -82,30 +85,30 @@ if st.button("🔮 **Prédire la catégorie du sol**", type="primary", use_conta
     input_df = pd.DataFrame(data, index=[0])
     input_data = input_df.fillna(0)
 
-    # Prédiction et probabilités
+    # Prediction and probabilities
     prediction = model.predict(input_data)
     probabilities = model.predict_proba(input_data)
 
-    # Affichage du résultat
+    # Display result
     st.markdown("---")
-    st.subheader("📊 Résultat de la prédiction")
-    st.success(f"La catégorie prédite est : **{labels[prediction[0]]}**", icon="✅")
+    st.subheader("📊 Prediction Result")
+    st.success(f"The predicted category is: **{labels[prediction[0]]}**", icon="✅")
 
-    # Affichage des probabilités
-    st.subheader("📈 Probabilités d'appartenance à chaque catégorie de cycles avant rupture")
+    # Display probabilities
+    st.subheader("📈 Probabilities of belonging to each cycles-to-failure category")
     prob_df = pd.DataFrame({
-        "Catégorie (cycles avant rupture)": labels,
-        "Probabilité": probabilities[0]
+        "Category (cycles to failure)": labels,
+        "Probability": probabilities[0]
     })
-    st.dataframe(prob_df.style.format({"Probabilité": "{:.2%}"}))
+    st.dataframe(prob_df.style.format({"Probability": "{:.2%}"}))
 
-    # Graphique en barres des probabilités
+    # Probability bar chart
     fig, ax = plt.subplots()
     ax.bar(labels, probabilities[0], color=['#4e79a7', '#f28e2b', '#e15759'])
-    ax.set_ylabel("Probabilité")
-    ax.set_title("Probabilités d'appartenance aux catégories")
+    ax.set_ylabel("Probability")
+    ax.set_title("Category Probabilities")
     st.pyplot(fig)
 
-    # Affichage des paramètres saisis
-    st.subheader("Paramètres saisis")
+    # Display entered parameters
+    st.subheader("Entered Parameters")
     st.dataframe(input_df.style.highlight_max(axis=0))
