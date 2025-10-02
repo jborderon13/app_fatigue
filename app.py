@@ -27,7 +27,7 @@ st.set_page_config(
 )
 
 # Title and description
-st.title("🌍 Soil Classification Application")
+st.title("🌍 Treated soils - Cycles to Failure")
 st.markdown("""
 This application predicts the **cycles-to-failure category** of a soil sample based on its properties.  
 Fill in the fields below and click **Predict** to see the result and the associated probabilities.
